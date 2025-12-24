@@ -162,81 +162,34 @@
     </div>
 
     <script>
-const chatbox = document.getElementById("chatbox");
-const inputField = document.getElementById("userInput");
-const typingIndicator = document.getElementById("typingIndicator");
+async function sendMessage() {
+  const input = document.getElementById("userInput");
+  const message = input.value.trim();
+  if (!message) return;
 
-// Auto welcome message
-window.onload = () => {
-    addMessage("Hello! 👋 I am your College Assistant. Ask me anything!", "bot");
-};
+  const chatBox = document.getElementById("chatBox");
+  chatBox.innerHTML += `<p><b>You:</b> ${message}</p>`;
+  input.value = "";
 
-// Send message function
-function sendMessage() {
-    let msg = inputField.value.trim();
-    if (msg === "") return;
-
-    // Show user message
-    addMessage(msg, "user");
-    inputField.value = "";
-
-    // Show typing indicator
-    showTyping(true);
-
-    // Send request to Flask backend
-    fetch("/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: msg })
-    })
-    .then(res => res.json())
-    .then(data => {
-        showTyping(false);
-        addMessage(data.answer, "bot");
-    })
-    .catch(err => {
-        showTyping(false);
-        addMessage("⚠️ Bot failed to respond!", "bot");
-        console.error("Error:", err);
+  try {
+    const response = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question: message })
     });
-}
 
-// Press Enter to send message
-inputField.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") sendMessage();
-});
-
-// Function to add message to chatbox
-function addMessage(text, sender) {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("msg", sender);
-
-    // Avatar
-    const avatar = document.createElement("img");
-    avatar.classList.add("avatar");
-    avatar.src = sender === "user"
-        ? "https://cdn-icons-png.flaticon.com/512/847/847969.png"
-        : "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
-
-    // Bubble
-    const bubble = document.createElement("div");
-    bubble.classList.add("bubble");
-    bubble.innerText = text;
-
-    msgDiv.appendChild(avatar);
-    msgDiv.appendChild(bubble);
-
-    chatbox.appendChild(msgDiv);
-    chatbox.scrollTop = chatbox.scrollHeight;
-}
-
-// Show or hide typing indicator
-function showTyping(show) {
-    typingIndicator.style.display = show ? "block" : "none";
+    const data = await response.json();
+    chatBox.innerHTML += `<p><b>Bot:</b> ${data.answer}</p>`;
+  } catch (err) {
+    chatBox.innerHTML += `<p style="color:red">⚠️ Bot error</p>`;
+    console.error(err);
+  }
 }
 </script>
 
 
+
 </body>
 </html>
+
 
