@@ -161,13 +161,14 @@
         </div>
     </div>
 
-    <script>
+   <script>
 async function sendMessage() {
   const input = document.getElementById("userInput");
   const message = input.value.trim();
   if (!message) return;
 
-  const chatBox = document.getElementById("chatBox");
+  // ✅ FIXED ID (matches HTML)
+  const chatBox = document.getElementById("chatbox");
   chatBox.innerHTML += `<p><b>You:</b> ${message}</p>`;
   input.value = "";
 
@@ -178,8 +179,21 @@ async function sendMessage() {
       body: JSON.stringify({ question: message })
     });
 
-    const data = await response.json();
+    // ✅ SAFETY CHECKS
+    if (!response.ok) {
+      chatBox.innerHTML += `<p style="color:red">⚠️ Server error</p>`;
+      return;
+    }
+
+    const text = await response.text();
+    if (!text) {
+      chatBox.innerHTML += `<p style="color:red">⚠️ Empty response (server waking up)</p>`;
+      return;
+    }
+
+    const data = JSON.parse(text);
     chatBox.innerHTML += `<p><b>Bot:</b> ${data.answer}</p>`;
+
   } catch (err) {
     chatBox.innerHTML += `<p style="color:red">⚠️ Bot error</p>`;
     console.error(err);
@@ -189,8 +203,10 @@ async function sendMessage() {
 
 
 
+
 </body>
 </html>
+
 
 
 
