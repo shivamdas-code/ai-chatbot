@@ -152,7 +152,7 @@
 </div>
 
 
-        <div id="chatBox"></div>
+        <div id="chatbox"></div>
         <div id="typingIndicator">🤖 Bot is typing...</div>
 
         <div class="input-area">
@@ -162,42 +162,40 @@
     </div>
 
    <script>
-async function sendMessage() {
+function sendMessage() {
   const input = document.getElementById("userInput");
+  const chatBox = document.getElementById("chatbox");
+
+  // 🔒 HARD GUARD (prevents crash)
+  if (!chatBox) {
+    console.error("chatbox div not found");
+    return;
+  }
+
   const message = input.value.trim();
   if (!message) return;
 
-  // ✅ FIXED ID (matches HTML)
-  const chatBox = document.getElementById("chatbox");
   chatBox.innerHTML += `<p><b>You:</b> ${message}</p>`;
   input.value = "";
 
-  try {
-    const response = await fetch("/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: message })
-    });
-
-    // ✅ SAFETY CHECKS
-    if (!response.ok) {
-      chatBox.innerHTML += `<p style="color:red">⚠️ Server error</p>`;
-      return;
-    }
-
-    const text = await response.text();
+  fetch("/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question: message })
+  })
+  .then(res => res.text())
+  .then(text => {
     if (!text) {
-      chatBox.innerHTML += `<p style="color:red">⚠️ Empty response (server waking up)</p>`;
+      chatBox.innerHTML += `<p style="color:red">⚠️ Empty response</p>`;
       return;
     }
-
     const data = JSON.parse(text);
     chatBox.innerHTML += `<p><b>Bot:</b> ${data.answer}</p>`;
-
-  } catch (err) {
-    chatBox.innerHTML += `<p style="color:red">⚠️ Bot error</p>`;
+  })
+  .catch(err => {
     console.error(err);
-  }
+    chatBox.innerHTML += `<p style="color:red">⚠️ Bot error</p>`;
+  });
 }
 </script>
 
@@ -206,6 +204,7 @@ async function sendMessage() {
 
 </body>
 </html>
+
 
 
 
